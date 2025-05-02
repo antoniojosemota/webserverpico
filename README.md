@@ -61,3 +61,5 @@ A página será exibida com os valores dos sensores sendo atualizados automatica
 - Leitura do botão (GPIO com pull-up)
 - Atualização automática dos dados via JavaScript (fetch a cada 1s)
 - O servidor TCP é configurado na porta 80.
+
+### Projetado por Antonio José Mota
