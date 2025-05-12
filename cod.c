@@ -9,8 +9,8 @@
 #include "lwip/netif.h" // Para acessar netif_default e IP
 
 // Configurações de Wi-Fi
-#define WIFI_SSID "Familia Brandao "
-#define WIFI_PASSWORD "994706949"
+#define WIFI_SSID "ENZOBOOK 4142"
+#define WIFI_PASSWORD "ENZOMELO10"
 
 // Definição dos pinos dos LEDs
 #define LED_PIN CYW43_WL_GPIO_LED_PIN
@@ -21,6 +21,42 @@
 #define BUTTON_PIN 5 // GPIO15 - Botão físico
 
 int button_state = 0; // Variável para armazenar o estado do botão
+
+char *bussola(uint x, uint y) {
+    char *result;
+
+    if (x < 1500 && y < 1500) {
+        result = "SUDOESTE";
+        printf("SUDOESTE\n");
+    } else if (x > 3000 && y < 1500) {
+        result = "SUDESTE";
+        printf("SUDESTE\n");
+    } else if (x < 1500 && y > 3000) {
+        result = "NOROESTE";
+        printf("NOROESTE\n");
+    } else if (x > 3000 && y > 3000) {
+        result = "NORDESTE";
+        printf("NORDESTE\n");
+    } else if (x < 1500) {
+        result = "OESTE";
+        printf("OESTE\n");
+    } else if (x > 3000) {
+        result = "LESTE";
+        printf("LESTE\n");
+    } else if (y < 1500) {
+        result = "SUL";
+        printf("SUL\n");
+    } else if (y > 3000) {
+        result = "NORTE";
+        printf("NORTE\n");
+    }
+    else {
+        result = "CENTRO";
+        printf("CENTRO\n");
+    }
+
+    return result;
+}
 
 // Função de callback para processar requisições HTTP
 static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
@@ -46,6 +82,7 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
     adc_select_input(1);
     uint16_t yy_value = adc_read();
 
+    char *direction = bussola(x_value, yy_value);
 
     bool current_button = gpio_get(BUTTON_PIN);  // Lê direto
     const char *button_states = current_button ? "Solto" : "Pressionado";
@@ -58,7 +95,7 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
     if (strstr(request, "GET /data") != NULL)
     {
         char json_body[128];
-        snprintf(json_body, sizeof(json_body), "{\"mic\": %d, \"button\": \"%s\", \"x\": %d, \"y\": %d}", mic, button_states, x_value, yy_value);
+        snprintf(json_body, sizeof(json_body), "{\"mic\": %d, \"button\": \"%s\", \"x\": \"%s\"}", mic, button_states, direction);
 
         char json[256];
         snprintf(json, sizeof(json),
@@ -105,7 +142,6 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
              "    document.getElementById('mic').textContent = data.mic;\n"
              "    document.getElementById('button').textContent = data.button;\n"
              "    document.getElementById('x').textContent = data.x;\n"
-             "    document.getElementById('y').textContent = data.y;\n"
              "  });\n"
              "}\n"
              "setInterval(updateData, 1000);\n"
@@ -116,8 +152,7 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
              "<h1>Monitoramento</h1>\n"
              "<div class=\"data\">Microfone: <span id=\"mic\">-</span></div>\n"
              "<div class=\"data\">Estado do botão: <span id=\"button\">-</span></div>\n"
-             "<div class=\"data\">Analogico X: <span id=\"x\">-</span></div>\n"
-             "<div class=\"data\">Analogico Y: <span id=\"y\">-</span></div>\n"
+             "<div class=\"data\">Direçãoj: <span id=\"x\">-</span></div>\n"
              "</body>\n"
              "</html>\n");
 
